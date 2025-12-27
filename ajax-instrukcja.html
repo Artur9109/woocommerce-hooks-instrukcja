@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJAX - Instrukcja PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #0073aa;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #0073aa;
+            margin-bottom: 10px;
+        }
+
+        .date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background-color: #f5f5f5;
+            border-left: 4px solid #0073aa;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .toc h2 {
+            color: #0073aa;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .toc ol {
+            list-style-position: inside;
+            margin-left: 20px;
+        }
+
+        .toc li {
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+
+        /* Section Styles */
+        .section {
+            page-break-inside: avoid;
+            margin: 30px 0;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #0073aa;
+            border-bottom: 2px solid #0073aa;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #005a87;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+
+        h4 {
+            font-size: 1.1em;
+            color: #333;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        /* Code Block Styles */
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-left: 4px solid #0073aa;
+            page-break-inside: avoid;
+        }
+
+        pre code {
+            color: #d4d4d4;
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        /* List Styles */
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Highlight Box */
+        .highlight {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .highlight-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        /* Important Box */
+        .important {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .important-title {
+            font-weight: bold;
+            color: #721c24;
+            margin-bottom: 8px;
+        }
+
+        /* Success Box */
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        .success-title {
+            font-weight: bold;
+            color: #155724;
+            margin-bottom: 8px;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+
+        th {
+            background-color: #0073aa;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #0073aa;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 20px;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+
+            a {
+                color: #0073aa;
+                text-decoration: none;
+            }
+
+            a:after {
+                content: " [" attr(href) "]";
+            }
+        }
+
+        /* Button to print */
+        .print-button {
+            background-color: #0073aa;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 30px;
+            no-print: true;
+        }
+
+        .print-button:hover {
+            background-color: #005a87;
+        }
+
+        .example-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .example-title {
+            font-weight: bold;
+            color: #0073aa;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>AJAX</h1>
+            <h2 style="font-size: 1.3em; color: #666; border: none; margin-top: 0; padding-top: 0;">Instrukcja Kompletna</h2>
+            <p class="date">Data: 2025-12-27</p>
+        </div>
+
+        <!-- Button to Print -->
+        <button class="print-button" onclick="window.print()">🖨️ Drukuj do PDF</button>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Spis Treści</h2>
+            <ol>
+                <li>Wstęp do AJAX</li>
+                <li>Czym jest AJAX</li>
+                <li>XMLHttpRequest API</li>
+                <li>Fetch API</li>
+                <li>Praktyczne Przykłady</li>
+                <li>Best Practices</li>
+                <li>Integracja z WordPress/WooCommerce</li>
+                <li>Debugging i Rozwiązywanie Problemów</li>
+            </ol>
+        </div>
+
+        <!-- Section 1: Wstęp -->
+        <div class="section">
+            <h2>1. Wstęp do AJAX</h2>
+            <p>AJAX (Asynchronous JavaScript and XML) to technika programistyczna, która pozwala na wysyłanie danych do serwera i pobieranie ich bez przeładowywania całej strony. Jest to kluczowa technologia dla budowania nowoczesnych, responsywnych aplikacji internetowych.</p>
+            <p>W tym przewodniku nauczysz się jak używać AJAX do komunikacji asynchronicznej między klientem a serwerem, co jest niezbędne w kontekście WordPress i WooCommerce.</p>
+        </div>
+
+        <!-- Section 2: Czym jest AJAX -->
+        <div class="section">
+            <h2>2. Czym jest AJAX?</h2>
+            
+            <h3>Definicja i Znaczenie</h3>
+            <p>AJAX to kombinacja kilku technologii:</p>
+            <ul>
+                <li><strong>JavaScript</strong> - obsługa logiki po stronie klienta</li>
+                <li><strong>XMLHttpRequest lub Fetch API</strong> - wysyłanie żądań HTTP</li>
+                <li><strong>JSON/XML</strong> - format wymiany danych</li>
+                <li><strong>HTML/CSS</strong> - dynamiczna aktualizacja interfejsu</li>
+            </ul>
+
+            <h3>Korzyści AJAX</h3>
+            <ul>
+                <li>Lepsza responsywność aplikacji</li>
+                <li>Zmniejszenie transferu danych</li>
+                <li>Asynchroniczna komunikacja nie blokuje interfejsu</li>
+                <li>Możliwość aktualizacji części strony bez przeładowania</li>
+                <li>Lepsze doświadczenie użytkownika (UX)</li>
+            </ul>
+
+            <h3>Kiedy Używać AJAX</h3>
+            <ul>
+                <li>Walidacja formularzy w czasie rzeczywistym</li>
+                <li>Pobieranie danych bez przeładowania strony</li>
+                <li>Autocomplate/sugestie</li>
+                <li>Dynamiczne ładowanie zawartości</li>
+                <li>Operacje asynchroniczne (upload, przetwarzanie)</li>
+            </ul>
+        </div>
+
+        <!-- Section 3: XMLHttpRequest -->
+        <div class="section">
+            <h2>3. XMLHttpRequest API</h2>
+
+            <h3>Podstawy XMLHttpRequest</h3>
+            <p><code>XMLHttpRequest</code> (XHR) to starszy, ale ciągle ważny obiekt do wysyłania żądań HTTP. Choć Fetch API jest nowsze, XMLHttpRequest jest nadal wspierane i używane.</p>
+
+            <h4>Podstawowy Przykład GET</h4>
+            <pre><code>// Utworzenie obiektu XMLHttpRequest
+const xhr = new XMLHttpRequest();
+
+// Zdefiniowanie co się stanie gdy odpowiedź będzie gotowa
+xhr.onload = function() {
+    if (xhr.status === 200) {
+        console.log('Sukces:', xhr.responseText);
+    } else {
+        console.error('Błąd:', xhr.status);
+    }
+};
+
+// Obsługa błędów
+xhr.onerror = function() {
+    console.error('Błąd żądania');
+};
+
+// Otwarcie żądania (metoda, URL)
+xhr.open('GET', 'https://api.example.com/data', true);
+
+// Wysłanie żądania
+xhr.send();
+            </code></pre>
+
+            <h4>POST Żądanie z Danymi</h4>
+            <pre><code>const xhr = new XMLHttpRequest();
+
+xhr.onload = function() {
+    const response = JSON.parse(xhr.responseText);
+    console.log('Odpowiedź:', response);
+};
+
+xhr.open('POST', 'https://api.example.com/submit', true);
+
+// Ustawienie nagłówka Content-Type
+xhr.setRequestHeader('Content-Type', 'application/json');
+
+// Wysłanie danych JSON
+const data = {
+    name: 'John',
+    email: 'john@example.com'
+};
+
+xhr.send(JSON.stringify(data));
+            </code></pre>
+
+            <h4>Ustawianie Nagłówków</h4>
+            <pre><code>const xhr = new XMLHttpRequest();
+
+xhr.open('POST', 'https://api.example.com/data', true);
+
+// Ustawianie niestandardowych nagłówków
+xhr.setRequestHeader('Content-Type', 'application/json');
+xhr.setRequestHeader('Authorization', 'Bearer token123');
+xhr.setRequestHeader('X-Custom-Header', 'value');
+
+xhr.send(JSON.stringify({data: 'example'}));
+            </code></pre>
+
+            <div class="highlight">
+                <div class="highlight-title">💡 Wskazówka</div>
+                <p>Nagłówki muszą być ustawione PRZED wywołaniem metody <code>send()</code>.</p>
+            </div>
+        </div>
+
+        <!-- Section 4: Fetch API -->
+        <div class="section">
+            <h2>4. Fetch API</h2>
+
+            <h3>Wprowadzenie do Fetch API</h3>
+            <p>Fetch API to nowoczesne API do wysyłania żądań HTTP. Jest to zamiennik dla XMLHttpRequest z czystszą składnią i obsługą Promise.</p>
+
+            <h4>Podstawowy GET</h4>
+            <pre><code>fetch('https://api.example.com/data')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Dane:', data);
+    })
+    .catch(error => {
+        console.error('Błąd:', error);
+    });
+            </code></pre>
+
+            <h4>POST Żądanie</h4>
+            <pre><code>const userData = {
+    name: 'John Doe',
+    email: 'john@example.com'
+};
+
+fetch('https://api.example.com/users', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(userData)
+})
+    .then(response => response.json())
+    .then(data => {
+        console.log('Sukces:', data);
+    })
+    .catch(error => {
+        console.error('Błąd:', error);
+    });
+            </code></pre>
+
+            <h4>Fetch z Async/Await</h4>
+            <pre><code>async function fetchData() {
+    try {
+        const response = await fetch('https://api.example.com/data');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Dane:', data);
+    } catch (error) {
+        console.error('Błąd:', error);
+    }
+}
+
+// Wywołanie funkcji
+fetchData();
+            </code></pre>
+
+            <h4>Zaawansowane Opcje Fetch</h4>
+            <pre><code>const options = {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer token123'
+    },
+    body: JSON.stringify({
+        name: 'John',
+        email: 'john@example.com'
+    }),
+    mode: 'cors',
+    credentials: 'include',
+    cache: 'no-cache'
+};
+
+fetch('https://api.example.com/data', options)
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error(error));
+            </code></pre>
+
+            <div class="success">
+                <div class="success-title">✓ Rekomendacja</div>
+                <p>Fetch API jest zalecaną metodą. Jest nowsza, czystsza i łatwniejsza w użyciu niż XMLHttpRequest.</p>
+            </div>
+        </div>
+
+        <!-- Section 5: Praktyczne Przykłady -->
+        <div class="section">
+            <h2>5. Praktyczne Przykłady</h2>
+
+            <h3>Przykład 1: Walidacja E-maila w Czasie Rzeczywistym</h3>
+            <div class="example-container">
+                <div class="example-title">HTML</div>
+                <pre><code>&lt;input type="email" id="email" placeholder="Wpisz e-mail"&gt;
+&lt;div id="emailStatus"&gt;&lt;/div&gt;</code></pre>
+            </div>
+
+            <div class="example-container">
+                <div class="example-title">JavaScript</div>
+                <pre><code>document.getElementById('email').addEventListener('blur', async (e) => {
+    const email = e.target.value;
+    const statusDiv = document.getElementById('emailStatus');
+    
+    if (!email) {
+        statusDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/wp-admin/admin-ajax.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=validate_email&email=' + encodeURIComponent(email)
+        });
+        
+        const data = await response.json();
+        
+        if (data.valid) {
+            statusDiv.innerHTML = '✓ E-mail jest dostępny';
+            statusDiv.style.color = 'green';
+        } else {
+            statusDiv.innerHTML = '✗ E-mail jest już zarejestrowany';
+            statusDiv.style.color = 'red';
+        }
+    } catch (error) {
+        console.error('Błąd:', error);
+    }
+});
+            </code></pre>
+            </div>
+
+            <h3>Przykład 2: Dynamiczne Ładowanie Produktów</h3>
+            <div class="example-container">
+                <div class="example-title">HTML</div>
+                <pre><code>&lt;button id="loadMore"&gt;Załaduj więcej produktów&lt;/button&gt;
+&lt;div id="productsList"&gt;&lt;/div&gt;</code></pre>
+            </div>
+
+            <div class="example-container">
+                <div class="example-title">JavaScript</div>
+                <pre><code>let currentPage = 1;
+
+document.getElementById('loadMore').addEventListener('click', async () => {
+    try {
+        const response = await fetch('/wp-admin/admin-ajax.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=load_products&page=' + currentPage
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const productsList = document.getElementById('productsList');
+            data.products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.innerHTML = `
+                    &lt;h4&gt;${product.name}&lt;/h4&gt;
+                    &lt;p&gt;Cena: ${product.price} zł&lt;/p&gt;
+                `;
+                productsList.appendChild(productDiv);
+            });
+            currentPage++;
+        }
+    } catch (error) {
+        console.error('Błąd przy ładowaniu produktów:', error);
+    }
+});
+            </code></pre>
+            </div>
+
+            <h3>Przykład 3: Dodawanie do Koszyka bez Przeładowania</h3>
+            <pre><code>document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const productId = button.dataset.productId;
+        const quantity = document.getElementById('quantity').value;
+        
+        try {
+            const response = await fetch('/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'action=add_to_cart&product_id=' + productId + 
+                      '&quantity=' + quantity
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Produkt dodany do koszyka!');
+                updateCartCount(data.cart_count);
+            }
+        } catch (error) {
+            console.error('Błąd:', error);
+        }
+    });
+});
+
+function updateCartCount(count) {
+    document.getElementById('cart-count').textContent = count;
+}
+            </code></pre>
+        </div>
+
+        <!-- Section 6: Best Practices -->
+        <div class="section">
+            <h2>6. Best Practices</h2>
+
+            <h3>1. Obsługa Błędów</h3>
+            <p>Zawsze obsługuj błędy i błędy sieci:</p>
+            <pre><code>async function fetchWithErrorHandling(url) {
+    try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Błąd podczas pobierania:', error);
+        // Wyświetl użytkownikowi wiadomość o błędzie
+        alert('Coś poszło nie tak. Spróbuj ponownie.');
+        throw error;
+    }
+}
+            </code></pre>
+
+            <h3>2. Timeouty</h3>
+            <p>Dodaj timeouty do żądań aby uniknąć zawieszenia:</p>
+            <pre><code>function fetchWithTimeout(url, timeout = 5000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    return fetch(url, { signal: controller.signal })
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json();
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('Żądanie przekroczyło limit czasu');
+            }
+            throw error;
+        });
+}
+            </code></pre>
+
+            <h3>3. Wskaźnik Ładowania</h3>
+            <p>Pokaż użytkownikowi, że coś się ładuje:</p>
+            <pre><code>async function loadWithIndicator(url) {
+    const loader = document.getElementById('loader');
+    loader.style.display = 'block';
+    
+    try {
+        const data = await fetch(url).then(r => r.json());
+        return data;
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+            </code></pre>
+
+            <h3>4. Zapobieganie Duplikatom Żądań</h3>
+            <pre><code>class RequestManager {
+    constructor() {
+        this.pendingRequests = new Map();
+    }
+    
+    async fetch(key, url, options) {
+        if (this.pendingRequests.has(key)) {
+            return this.pendingRequests.get(key);
+        }
+        
+        const promise = fetch(url, options)
+            .then(r => r.json())
+            .finally(() => this.pendingRequests.delete(key));
+        
+        this.pendingRequests.set(key, promise);
+        return promise;
+    }
+}
+            </code></pre>
+
+            <h3>5. Bezpieczeństwo</h3>
+            <ul>
+                <li>Zawsze używaj HTTPS dla żądań AJAX</li>
+                <li>Waliduj dane zarówno na kliencie jak i serwerze</li>
+                <li>Używaj nonce'ów w WordPress dla CSRF ochrony</li>
+                <li>Nie przesyłaj wrażliwych danych w URL-u (GET)</li>
+                <li>Nie polegaj na walidacji tylko po stronie klienta</li>
+            </ul>
+
+            <div class="important">
+                <div class="important-title">⚠️ Ważne</div>
+                <p>Zawsze waliduj i sanityzuj dane na serwerze. Walidacja po stronie klienta jest tylko dla wygody użytkownika.</p>
+            </div>
+        </div>
+
+        <!-- Section 7: WordPress/WooCommerce -->
+        <div class="section">
+            <h2>7. Integracja z WordPress/WooCommerce</h2>
+
+            <h3>WordPress AJAX Hook</h3>
+            <p>WordPress dostarcza <code>admin-ajax.php</code> do obsługi żądań AJAX.</p>
+
+            <h4>Rejestracja AJAX Action</h4>
+            <pre><code>// W pliku functions.php lub pluginu
+add_action('wp_ajax_my_action', 'handle_my_ajax_request');
+add_action('wp_ajax_nopriv_my_action', 'handle_my_ajax_request');
+
+function handle_my_ajax_request() {
+    // Sprawdzenie nonce'a
+    if (!isset($_POST['nonce']) || 
+        !wp_verify_nonce($_POST['nonce'], 'my_ajax_nonce')) {
+        wp_send_json_error('Nonce verification failed');
+    }
+    
+    // Przetwarzanie danych
+    $data = sanitize_text_field($_POST['data']);
+    
+    // Zwrot wyniku
+    wp_send_json_success([
+        'message' => 'Operacja zakończona pomyślnie',
+        'data' => $data
+    ]);
+    
+    die();
+}
+            </code></pre>
+
+            <h4>Obsługa po Stronie Klienta</h4>
+            <pre><code>// Wysłanie żądania AJAX z nonce'em
+fetch(ajax_object.ajax_url, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'action=my_action&nonce=' + ajax_object.nonce + 
+          '&data=' + encodeURIComponent('example')
+})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Sukces:', data.data);
+        } else {
+            console.error('Błąd:', data.data);
+        }
+    });
+            </code></pre>
+
+            <h4>Lokalizowanie Zmiennych</h4>
+            <pre><code>// W PHP (functions.php)
+wp_enqueue_script('my-script', get_template_directory_uri() . '/js/my-script.js');
+
+wp_localize_script('my-script', 'ajax_object', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('my_ajax_nonce'),
+    'site_url' => site_url()
+]);
+            </code></pre>
+
+            <h3>WooCommerce AJAX Hooks</h3>
+            <p>WooCommerce ma wiele dostępnych hooki dla AJAX:</p>
+            <table>
+                <tr>
+                    <th>Hook</th>
+                    <th>Opis</th>
+                </tr>
+                <tr>
+                    <td><code>wp_ajax_woocommerce_add_to_cart</code></td>
+                    <td>Dodawanie produktu do koszyka</td>
+                </tr>
+                <tr>
+                    <td><code>wp_ajax_woocommerce_remove_from_cart</code></td>
+                    <td>Usuwanie produktu z koszyka</td>
+                </tr>
+                <tr>
+                    <td><code>wp_ajax_woocommerce_update_order_review</code></td>
+                    <td>Aktualizacja danych zamówienia</td>
+                </tr>
+                <tr>
+                    <td><code>wp_ajax_woocommerce_apply_coupon</code></td>
+                    <td>Zastosowanie kodu rabatowego</td>
+                </tr>
+            </table>
+
+            <h4>Przykład: Niestandardowy AJAX w WooCommerce</h4>
+            <pre><code>// Dodaj do functions.php
+add_action('wp_ajax_custom_woo_action', 'handle_custom_woo_ajax');
+
+function handle_custom_woo_ajax() {
+    check_ajax_referer('woo_nonce', 'security');
+    
+    $product_id = intval($_POST['product_id']);
+    
+    if (wc_get_product($product_id)) {
+        wp_send_json_success([
+            'product_id' => $product_id,
+            'message' => 'Produkt znaleziony'
+        ]);
+    } else {
+        wp_send_json_error('Produkt nie istnieje');
+    }
+    
+    die();
+}
+            </code></pre>
+        </div>
+
+        <!-- Section 8: Debugging -->
+        <div class="section">
+            <h2>8. Debugging i Rozwiązywanie Problemów</h2>
+
+            <h3>Narzędzia do Debugowania</h3>
+            <ul>
+                <li><strong>Browser DevTools</strong> - Network tab do analizy żądań</li>
+                <li><strong>Console</strong> - dla logowania błędów</li>
+                <li><strong>Network Monitor</strong> - dla statusów HTTP</li>
+                <li><strong>Storage/Cookies</strong> - dla sprawdzenia ciasteczek</li>
+            </ul>
+
+            <h3>Logowanie Debugujące</h3>
+            <pre><code>async function debugFetch(url, options = {}) {
+    console.log('🚀 Wysyłam żądanie:', url, options);
+    console.time('fetch-' + url);
+    
+    try {
+        const response = await fetch(url, options);
+        console.log('📨 Status odpowiedzi:', response.status);
+        
+        const data = await response.json();
+        console.log('✅ Dane odpowiedzi:', data);
+        
+        return data;
+    } catch (error) {
+        console.error('❌ Błąd żądania:', error);
+        throw error;
+    } finally {
+        console.timeEnd('fetch-' + url);
+    }
+}
+            </code></pre>
+
+            <h3>Częste Problemy</h3>
+
+            <h4>Problem: CORS Error</h4>
+            <p><strong>Objawy:</strong> "Access to XMLHttpRequest has been blocked by CORS policy"</p>
+            <p><strong>Rozwiązanie:</strong> Serwer musi wysyłać odpowiednie nagłówki CORS lub używaj względnych URL-i.</p>
+
+            <h4>Problem: Żądanie nie dociera</h4>
+            <p><strong>Objawy:</strong> Brak logów, żadnych błędów</p>
+            <p><strong>Rozwiązanie:</strong> Sprawdź Network tab w DevTools, czy żądanie jest wysyłane.</p>
+
+            <h4>Problem: Błąd 500 od serwera</h4>
+            <p><strong>Objawy:</strong> HTTP 500 error</p>
+            <p><strong>Rozwiązanie:</strong> Sprawdź logi serwera, możliwe błędy PHP.</p>
+
+            <h4>Problem: Timeout żądania</h4>
+            <p><strong>Objawy:</strong> Żądanie trwa zbyt długo</p>
+            <p><strong>Rozwiązanie:</strong> Zwiększ timeout lub sprawdź obciążenie serwera.</p>
+
+            <h3>Checklist Debugowania</h3>
+            <ul>
+                <li>☐ Sprawdź Network tab - czy żądanie jest wysyłane?</li>
+                <li>☐ Sprawdź status HTTP - 200, 404, 500?</li>
+                <li>☐ Sprawdź format odpowiedzi - JSON, HTML, XML?</li>
+                <li>☐ Sprawdź nagłówki - Content-Type, CORS headers</li>
+                <li>☐ Sprawdź payload - czy dane są wysyłane poprawnie?</li>
+                <li>☐ Sprawdź konsole - czy są błędy JavaScript?</li>
+                <li>☐ Sprawdź logi serwera - PHP errors/warnings</li>
+                <li>☐ Sprawdź nonce - czy jest walidowany poprawnie?</li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Instrukcja AJAX | Wygenerowano: 2025-12-27</p>
+            <p>Dokument przeznaczony do druku jako PDF</p>
+        </div>
+    </div>
+</body>
+</html>
